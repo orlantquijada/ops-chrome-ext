@@ -116,6 +116,9 @@ export const {
   },
 
   utils: {
+    w: (v: Stitches.PropertyValue<'width'>) => ({ width: v }),
+    h: (v: Stitches.PropertyValue<'height'>) => ({ height: v }),
+
     m: (v: Stitches.PropertyValue<'margin'>) => ({ margin: v }),
     mt: (v: Stitches.PropertyValue<'margin'>) => ({ marginBlockStart: v }),
     mr: (v: Stitches.PropertyValue<'margin'>) => ({ marginInlineEnd: v }),
