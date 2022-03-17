@@ -1,26 +1,32 @@
 import create from 'zustand'
 import { persist, StateStorage } from 'zustand/middleware'
+import { get, set, del } from 'idb-keyval'
 
 import { User } from '../types'
 import * as usersService from '../api/users'
 
-const customStorage: StateStorage = {
-  getItem: (name: string) =>
-    chrome.storage.local.get(name).then((obj) => JSON.stringify(obj[name])),
-  setItem: async (name: string, value: string) => {
-    console.log(name, value)
-    return chrome.storage.local.set({ [name]: value })
+const STORAGE_NAME = 'auth-storage'
+
+// storage syncing to give 'background.js' access to user data
+const storage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    chrome.storage.sync.get(name)
+    return (await get(name)) || null
   },
-  removeItem: async (name: string) => {
-    console.log(name, 'has been deleted')
-    await chrome.storage.local.remove(name)
+  setItem: async (name: string, value: string): Promise<void> => {
+    chrome.storage.sync.set({ [name]: JSON.parse(value) })
+    await set(name, value)
+  },
+  removeItem: async (name: string): Promise<void> => {
+    chrome.storage.local.remove(name)
+    await del(name)
   },
 }
 
 interface State {
   user: User | null
   signin: typeof usersService.login
-  signout: VoidFunction
+  signout: (callback?: VoidFunction) => void
 
   _hasHydrated: boolean
   setHasHydrated: (_hasHydrated: boolean) => void
@@ -31,7 +37,10 @@ const useAuth = create<State>(
   persist(
     (set, _get) => ({
       user: null,
-      signout: () => set({ user: null }),
+      signout: (cb) => {
+        set({ user: null })
+        if (cb) cb()
+      },
       signin: (values) =>
         usersService.login(values).then((user) => {
           set({ user })
@@ -42,11 +51,9 @@ const useAuth = create<State>(
       setHasHydrated: (_hasHydrated) => set({ _hasHydrated }),
     }),
     {
-      name: 'auth-storage',
-      getStorage: () => customStorage,
-      onRehydrateStorage: (state) => {
-        state.setHasHydrated(true)
-      },
+      name: STORAGE_NAME,
+      getStorage: () => storage,
+      onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
     }
   )
 )
