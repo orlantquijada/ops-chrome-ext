@@ -1,4 +1,4 @@
-import { ReactNode, useReducer, useState } from 'react'
+import { ReactNode, useReducer } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { css, styled } from '../../stitches.config'
@@ -38,9 +38,6 @@ export default function LoginScreen() {
     }
   }
 
-  console.log('asdasd')
-  console.log(user)
-
   if (user) {
     return <Navigate to="/expenses" state={{ from: location }} replace />
   }
@@ -56,20 +53,6 @@ export default function LoginScreen() {
       >
         <Box css={{ position: 'absolute', top: '1.5rem', left: '0' }}>
           <Logo />
-          <button
-            onClick={() => {
-              chrome.storage.local.set({ n: Math.random() })
-            }}
-          >
-            set
-          </button>
-          <button
-            onClick={() => {
-              chrome.storage.local.get('n').then((n) => console.log(n))
-            }}
-          >
-            clear
-          </button>
         </Box>
         <Box css={{ w: '100%', pt: '$9' }}>
           <Text
