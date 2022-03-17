@@ -5,7 +5,7 @@ import { Route, Routes } from 'react-router-dom'
 import LoginScreen from './routes/LoginScreen'
 import { RequireAuth } from './components/RequireAuth'
 import Expenses from './routes/expenses'
-import Invoices from './routes/invoices'
+import ExamsScreen from './routes/ExamsScreen'
 import useAuth from './utils/stores/auth'
 
 const queryClient = new QueryClient()
@@ -29,7 +29,14 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route path="invoices" element={<Invoices />} />
+        <Route
+          path="exams"
+          element={
+            <RequireAuth>
+              <ExamsScreen />
+            </RequireAuth>
+          }
+        />
       </Routes>
     </QueryClientProvider>
   )

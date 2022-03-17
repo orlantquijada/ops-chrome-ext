@@ -31,7 +31,7 @@ export default function LoginScreen() {
   const onSubmit = async (values: FormFields) => {
     try {
       await signin(values).then(() => {
-        navigate('expenses')
+        navigate('/exams')
       })
     } catch (error) {
       alert('asdasd')
@@ -39,7 +39,7 @@ export default function LoginScreen() {
   }
 
   if (user) {
-    return <Navigate to="/expenses" state={{ from: location }} replace />
+    return <Navigate to="/exams" state={{ from: location }} replace />
   }
 
   return (

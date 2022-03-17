@@ -4,6 +4,7 @@ import axios from './axios'
 
 export interface ListQueryParams {
   proctorId?: User['id']
+  examineeId?: User['id']
   classId?: Class['id']
 }
 
