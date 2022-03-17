@@ -171,6 +171,11 @@ export const globalStyles = globalCss({
     margin: 0,
   },
 
+  html: {
+    w: 320,
+    h: 550,
+  },
+
   'html, body': {
     fontFamily:
       '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif',

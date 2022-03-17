@@ -7,6 +7,10 @@ import TextField, { sharedStyles } from '../components/TextField'
 import Button from '../components/Button'
 import Box from '../components/Box'
 import Text from '../components/Text'
+import Logo from '../components/Logo'
+import Flex from '../components/Flex'
+import useAuth from '../utils/stores/auth'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 interface FormFields {
   email: string
@@ -14,52 +18,103 @@ interface FormFields {
 }
 
 export default function LoginScreen() {
+  const signin = useAuth((s) => s.signin)
+  const user = useAuth((s) => s.user)
+  const navigate = useNavigate()
   const [show, toggle] = useReducer((show) => !show, false)
-  const { register, handleSubmit } = useForm<FormFields>()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormFields>()
 
-  const onSubmit = (values: FormFields) => {
-    console.log(values)
+  const onSubmit = async (values: FormFields) => {
+    try {
+      await signin(values).then(() => {
+        navigate('expenses')
+      })
+    } catch (error) {
+      alert('asdasd')
+    }
+  }
+
+  console.log('asdasd')
+  console.log(user)
+
+  if (user) {
+    return <Navigate to="/expenses" state={{ from: location }} replace />
   }
 
   return (
-    <Layout
-      css={{
-        border: '2px solid $bloo-light-primary',
-        borderRadius: '$10',
-        ml: '$4',
-        mt: '$4',
-      }}
-    >
-      <Box
-        css={{
-          px: '$4',
-          py: '$2',
-          position: 'relative',
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
+    <Layout>
+      <Flex
+        direction="column"
+        align="center"
+        justify="center"
+        gap="5"
+        css={{ mx: 'auto', position: 'relative', h: '100%', w: 'fit-content' }}
       >
+        <Box css={{ position: 'absolute', top: '1.5rem', left: '0' }}>
+          <Logo />
+          <button
+            onClick={() => {
+              chrome.storage.local.set({ n: Math.random() })
+            }}
+          >
+            set
+          </button>
+          <button
+            onClick={() => {
+              chrome.storage.local.get('n').then((n) => console.log(n))
+            }}
+          >
+            clear
+          </button>
+        </Box>
+        <Box css={{ w: '100%', pt: '$9' }}>
+          <Text
+            as="h1"
+            fontSize="3xl"
+            color="bloo-light-primary"
+            weight="extrabold"
+          >
+            Log in
+          </Text>
+          <Text
+            as="h4"
+            fontSize="base"
+            color="bloo-dark-primary"
+            weight="semibold"
+          >
+            Sign in to continue!
+          </Text>
+        </Box>
         <StlyedForm onSubmit={handleSubmit(onSubmit)}>
-          <FeildSet label="Institutional Email">
+          <FeildSet label="Institutional Email" error={errors.email?.message}>
             <TextField
               variant="outlined"
               color="bloo-light-primary"
               placeholder="john.doe@cit.edu"
               fontSize="sm"
-              {...register('email')}
+              type="email"
+              {...register('email', {
+                required: 'required',
+                pattern: {
+                  value:
+                    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                  message: 'invalid email',
+                },
+              })}
             />
           </FeildSet>
 
-          <FeildSet label="Password">
+          <FeildSet label="Password" error={errors.password?.message}>
             <TextFieldWrapper variant="outlined" color="bloo-light-primary">
               <TextField
                 type={show ? 'text' : 'password'}
                 fontSize="sm"
                 css={{ color: 'inherit' }}
-                {...register('password')}
+                {...register('password', { required: 'required' })}
               />
               <Button
                 type="button"
@@ -74,7 +129,7 @@ export default function LoginScreen() {
           </FeildSet>
           <Button variant="primary">Log in</Button>
         </StlyedForm>
-      </Box>
+      </Flex>
     </Layout>
   )
 }
@@ -89,9 +144,6 @@ const StlyedForm = styled('form', {
   display: 'flex',
   flexDirection: 'column',
   gap: '$3',
-
-  position: 'absolute',
-  top: '40%',
 })
 
 const fieldStyles = css({
@@ -138,7 +190,7 @@ function FeildSet({
     <fieldset
       className={fieldStyles({ variant: hasError ? 'error' : undefined })}
     >
-      <Text fontSize="sm" color="bloo-dark-20" as="label">
+      <Text fontSize="sm" color="bloo-light-10" as="label">
         {label}
       </Text>
       {children}
