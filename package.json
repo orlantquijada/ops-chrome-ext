@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "build-extension": "yarn build && cp src/manifest.json dist/"
+    "build-extension": "yarn build && cp src/manifest.json dist/ && cp src/background.js dist/"
   },
   "dependencies": {
     "@radix-ui/colors": "^0.1.8",
@@ -15,10 +15,12 @@
     "@stitches/react": "^1.2.7",
     "axios": "^0.26.1",
     "dayjs": "^1.11.0",
+    "idb-keyval": "^6.1.0",
     "immer": "^9.0.12",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-hook-form": "^7.28.0",
+    "react-query": "^3.34.16",
     "react-router-dom": "6",
     "zustand": "^3.7.1"
   },
