@@ -36,3 +36,24 @@ export interface Exam {
   endTime: Date
   createdAt: Date
 }
+
+export type ActivityType =
+  | 'SWITCHED_TAB'
+  | 'LOSE_WINDOW_FOCUS'
+  | 'WENT_INCOGNITO'
+  | 'ACCESSED_SITE'
+  | 'USED_SEARCH_ENGINE'
+  | 'FINISHED_EXAM_FAST'
+  | 'ENTERED_EXAM_LATE'
+  | 'FINISHED_EXAM'
+  | 'WENT_IDLE'
+  | 'JOINED_EXAM'
+
+export interface Activity {
+  id: number
+  name: ActivityType
+  description: string
+  examId: Exam['id']
+  examineeId: User['id']
+  isSuspicious: boolean
+}

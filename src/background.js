@@ -1,7 +1,13 @@
 function listenFocus() {
-  window.addEventListener('blur', () => {
-    fetch('http://192.168.1.14:8001/api/barangays/tabs', {
-      body: 'lost focus',
+  window.addEventListener('blur', async () => {
+    fetch('http://192.168.1.3:8000/api/activities', {
+      body: JSON.stringify({
+        name: 'LOSE_WINDOW_FOCUS',
+        description: 'User has switch his/her tab',
+        examId: 1,
+        examineeId: 2,
+        isSuspicious: true,
+      }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
@@ -10,8 +16,14 @@ function listenFocus() {
 
 function handler(tab) {
   return chrome.windows.getLastFocused().then(async (windowInfo) => {
-    fetch('http://192.168.1.14:8001/api/barangays/tabs', {
-      body: JSON.stringify({ ...tab, windowInfo, active, a: user }),
+    fetch('http://192.168.1.3:8000/api/activities', {
+      body: JSON.stringify({
+        name: 'SWITCHED_TAB',
+        description: 'Examinee has switch to another tab',
+        examId: 1,
+        examineeId: 2,
+        isSuspicious: true,
+      }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })

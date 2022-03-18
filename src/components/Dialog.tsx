@@ -4,6 +4,7 @@ import { styled, keyframes } from '../../stitches.config'
 import { blackA, blue, mauve, slate } from '@radix-ui/colors'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { buttonStyles } from './Button'
+import { textStyles } from './Text'
 
 const overlayShow = keyframes({
   '0%': { opacity: 0 },
@@ -57,7 +58,7 @@ const StyledContent = styled(DialogPrimitive.Content, {
   '&:focus': { outline: 'none' },
 })
 
-const StyledTitle = styled(DialogPrimitive.Title, {
+const StyledTitle = styled(DialogPrimitive.Title, textStyles, {
   margin: 0,
   fontWeight: 500,
   color: mauve.mauve12,
@@ -73,7 +74,7 @@ const StyledDescription = styled(DialogPrimitive.Description, {
 
 const StyledTrigger = styled(DialogPrimitive.Trigger, buttonStyles)
 
-export const CleanedUpTrigger = styled(DialogPrimitive.Trigger, {
+export const CleanedUpTrigger = styled(DialogPrimitive.Trigger, buttonStyles, {
   background: 'none',
   border: 'none',
 

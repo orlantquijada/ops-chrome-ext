@@ -4,6 +4,7 @@ import axios from './axios'
 
 export interface ListQueryParams {
   proctorId?: User['id']
+  examineeId?: User['id']
 }
 
 export const list = (params: ListQueryParams = {}) =>
@@ -17,3 +18,11 @@ export const retrieve = (id: Exam['id']) =>
     .get<Class>(`classes/${id}`)
     .then((res) => res.data)
     .then(parseClass)
+
+export interface EnrolRequestBody {
+  code: string
+  examineeId: User['id']
+}
+
+export const enrol = (values: EnrolRequestBody) =>
+  axios.post('classes/enrol', values)

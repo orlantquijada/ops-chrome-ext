@@ -4,7 +4,7 @@ import { globalStyles } from '../stitches.config'
 import { Route, Routes } from 'react-router-dom'
 import LoginScreen from './routes/LoginScreen'
 import { RequireAuth } from './components/RequireAuth'
-import Expenses from './routes/expenses'
+import ClassesScreen from './routes/ClassesScreen'
 import ExamsScreen from './routes/ExamsScreen'
 import useAuth from './utils/stores/auth'
 
@@ -22,10 +22,10 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginScreen />} />
         <Route
-          path="expenses"
+          path="classes"
           element={
             <RequireAuth>
-              <Expenses />
+              <ClassesScreen />
             </RequireAuth>
           }
         />
