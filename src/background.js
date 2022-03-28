@@ -1,17 +1,33 @@
-function listenFocus() {
+async function startExamHandler() {
+  const { examId, examineeId } = await chrome.storage.sync.get([
+    'examId',
+    'examineeId',
+  ])
+
+  // listen for `alt-tabs`
   window.addEventListener('blur', async () => {
-    fetch('http://192.168.1.3:8000/api/activities', {
+    fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'LOSE_WINDOW_FOCUS',
         description: 'User has switch his/her tab',
-        examId: 1,
-        examineeId: 2,
+        examId,
+        examineeId,
         isSuspicious: true,
       }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
   })
+
+  // wip: confirm exit exam
+  window.addEventListener(
+    'beforeunload',
+    (e) => {
+      e.preventDefault()
+      return (e.returnValue = 'Wowowow')
+    },
+    { capture: true }
+  )
 }
 
 async function handler(tab) {
@@ -93,7 +109,7 @@ chrome.storage.onChanged.addListener(async (changes) => {
     for (const tab of tabs) {
       chrome.scripting.executeScript({
         target: { tabId: tab.id, allFrames: true },
-        func: listenFocus,
+        func: startExamHandler,
       })
     }
   }
