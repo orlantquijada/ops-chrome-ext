@@ -1,11 +1,13 @@
 import { create } from '../utils/api/activities'
 import { Exam } from '../utils/types'
-import Box from './Box'
 import Button from './Button'
 import Flex from './Flex'
 import Text from './Text'
+import useAuth from '../utils/stores/auth'
 
 export default function ExamCard({ exam }: { exam: Exam }) {
+  const user = useAuth((s) => s.user)
+
   return (
     <Flex
       justify="between"
@@ -23,13 +25,17 @@ export default function ExamCard({ exam }: { exam: Exam }) {
         variant="primary"
         size="sm"
         onClick={async () => {
-          await chrome.storage.sync.set({ startExam: true, examId: exam.id })
+          await chrome.storage.sync.set({
+            startExam: true,
+            examId: exam.id,
+            examineeId: user?.id,
+          })
           await create({
             isSuspicious: false,
             name: 'JOINED_EXAM',
             description: '',
-            examId: 1,
-            examineeId: 2,
+            examId: exam.id,
+            examineeId: user?.id as number,
           })
           window.close()
         }}
