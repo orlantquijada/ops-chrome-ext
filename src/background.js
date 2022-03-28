@@ -14,20 +14,25 @@ function listenFocus() {
   })
 }
 
-function handler(tab) {
-  return chrome.windows.getLastFocused().then(async (windowInfo) => {
-    fetch('http://192.168.1.3:8000/api/activities', {
+async function handler(tab) {
+  const { examId, examineeId, ...rest } = await chrome.storage.sync.get([
+    'examId',
+    'examineeId',
+    'startExam',
+  ])
+
+  if (rest.startExam)
+    fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'SWITCHED_TAB',
         description: 'Examinee has switch to another tab',
-        examId: 1,
-        examineeId: 2,
+        examId,
+        examineeId,
         isSuspicious: true,
       }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
-  })
 }
 
 chrome.tabs.onActivated.addListener(handler)
