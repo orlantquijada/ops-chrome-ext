@@ -9,7 +9,7 @@ async function startExamHandler() {
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'LOSE_WINDOW_FOCUS',
-        description: 'User has switch his/her tab',
+        description: 'has opened another application.',
         examId,
         examineeId,
         isSuspicious: true,
@@ -30,18 +30,19 @@ async function startExamHandler() {
   )
 }
 
-async function handler(tab) {
-  const { examId, examineeId, ...rest } = await chrome.storage.sync.get([
-    'examId',
-    'examineeId',
-    'startExam',
-  ])
+async function handler(activeInfo) {
+  const { examId, examineeId, url, startExam } = await chrome.storage.sync.get()
 
-  if (rest.startExam)
+  const tab = await chrome.tabs.get(activeInfo.tabId)
+
+  if (startExam)
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
-        name: 'SWITCHED_TAB',
-        description: 'Examinee has switch to another tab',
+        name: url === tab.url ? 'RETURNED' : 'SWITCHED_TAB',
+        description:
+          url === tab.url
+            ? `has returned to the exam tab. ${url} ${activeInfo.tabId}`
+            : `switched to another tab ${url} ${tab.url}`,
         examId,
         examineeId,
         isSuspicious: true,
@@ -52,12 +53,9 @@ async function handler(tab) {
 }
 
 chrome.tabs.onActivated.addListener(handler)
-chrome.tabs.onUpdated.addListener(async (_, __, tab) => {
+chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
   // wip
-  const { examId, examineeId } = await chrome.storage.sync.get([
-    'examId',
-    'examineeId',
-  ])
+  const { examId, examineeId } = await chrome.storage.sync.get()
 
   const searchEngines = [
     'google.com',
@@ -84,13 +82,16 @@ chrome.tabs.onUpdated.addListener(async (_, __, tab) => {
     return new URL(url).searchParams.get('q')
   }
 
-  if (searchEngines.some((searchEngine) => tab.url.includes(searchEngine)))
+  if (
+    changeInfo.url &&
+    searchEngines.some((searchEngine) => tab.url.includes(searchEngine))
+  )
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'USED_SEARCH_ENGINE',
-        description: `has searched switch ${googleQueryStringParser(
+        description: `has searched "${googleQueryStringParser(
           tab.url
-        )} on google`,
+        )}" on google`,
         examId,
         examineeId,
         isSuspicious: true,

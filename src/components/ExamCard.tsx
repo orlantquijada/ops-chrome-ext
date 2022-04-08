@@ -25,15 +25,20 @@ export default function ExamCard({ exam }: { exam: Exam }) {
         variant="primary"
         size="sm"
         onClick={async () => {
+          const activeTab = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          })
           await chrome.storage.sync.set({
             startExam: true,
             examId: exam.id,
             examineeId: user?.id,
+            url: activeTab[0].url,
           })
           await create({
             isSuspicious: false,
             name: 'JOINED_EXAM',
-            description: '',
+            description: 'has started answering the exam.',
             examId: exam.id,
             examineeId: user?.id as number,
           })
