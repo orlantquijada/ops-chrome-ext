@@ -139,9 +139,8 @@ chrome.storage.onChanged.addListener(async (changes) => {
   }
 })
 
-chrome.idle.setDetectionInterval(160)
-
-// set idle time to be 3 minutes
+// set idle time to be 2 minutes
+chrome.idle.setDetectionInterval(120)
 chrome.idle.onStateChanged.addListener(async (idleState) => {
   const { startExam } = await chrome.storage.sync.get()
   if (idleState !== 'idle' || !startExam) return
@@ -151,7 +150,7 @@ chrome.idle.onStateChanged.addListener(async (idleState) => {
   fetch('http://127.0.0.1:8000/api/activities', {
     body: JSON.stringify({
       name: 'WENT_IDLE',
-      description: 'went idle for 3 minutes',
+      description: 'went idle for 2 minutes',
       examId,
       examineeId,
       isSuspicious: true,
