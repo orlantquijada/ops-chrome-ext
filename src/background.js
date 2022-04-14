@@ -34,33 +34,35 @@ async function startExamHandler() {
 }
 
 async function handler(activeInfo) {
-  const { examId, examineeId, url, startExam } = await chrome.storage.sync.get()
+  const { startExam } = await chrome.storage.sync.get()
+  if (!startExam) return
+
+  const { examId, examineeId, url } = await chrome.storage.sync.get()
 
   const tab = await chrome.tabs.get(activeInfo.tabId)
   await chrome.storage.sync.set({ activeTabUrl: tab.url })
 
-  if (startExam) {
-    const returned = url === tab.url
+  const returned = url === tab.url
 
-    fetch('http://127.0.0.1:8000/api/activities', {
-      body: JSON.stringify({
-        name: returned ? 'RETURNED' : 'SWITCHED_TAB',
-        description: returned
-          ? 'has returned to the exam tab.'
-          : 'switched to another tab.',
-        examId,
-        examineeId,
-        isSuspicious: !returned,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-    })
-  }
+  fetch('http://127.0.0.1:8000/api/activities', {
+    body: JSON.stringify({
+      name: returned ? 'RETURNED' : 'SWITCHED_TAB',
+      description: returned
+        ? 'has returned to the exam tab.'
+        : `switched to another tab${tab.incognito ? ' (incognito)' : ''}.`,
+      examId,
+      examineeId,
+      isSuspicious: !returned,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+  })
 }
 
 chrome.tabs.onActivated.addListener(handler)
 chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
-  if (!changeInfo.url) return
+  const { startExam } = await chrome.storage.sync.get()
+  if (!changeInfo.url || !startExam) return
 
   // search engine usage is tracked in `tabs.onUpdate` since the alternative, `history.onVisited`
   // does not track usage in incognito
@@ -97,7 +99,7 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
         name: 'USED_SEARCH_ENGINE',
         description: `has searched "${googleQueryStringParser(
           tab.url
-        )}" on google`,
+        )}" on google ${tab.incognito ? '(incognito)' : ''}.`,
         examId,
         examineeId,
         isSuspicious: true,
@@ -109,7 +111,9 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'ACCESSED_SITE',
-        description: `has accessed ${tab.url}.`,
+        description: `has accessed ${tab.url}${
+          tab.incognito ? ' (incognito)' : ''
+        }.`,
         examId,
         examineeId,
         isSuspicious: true,
@@ -133,4 +137,26 @@ chrome.storage.onChanged.addListener(async (changes) => {
       })
     }
   }
+})
+
+chrome.idle.setDetectionInterval(160)
+
+// set idle time to be 3 minutes
+chrome.idle.onStateChanged.addListener(async (idleState) => {
+  const { startExam } = await chrome.storage.sync.get()
+  if (idleState !== 'idle' || !startExam) return
+
+  const { examId, examineeId } = await chrome.storage.sync.get()
+
+  fetch('http://127.0.0.1:8000/api/activities', {
+    body: JSON.stringify({
+      name: 'WENT_IDLE',
+      description: 'went idle for 3 minutes',
+      examId,
+      examineeId,
+      isSuspicious: true,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+  })
 })
