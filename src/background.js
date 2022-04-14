@@ -159,3 +159,23 @@ chrome.idle.onStateChanged.addListener(async (idleState) => {
     method: 'POST',
   })
 })
+
+chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  const { startExam } = await chrome.storage.sync.get()
+  if (!startExam) return
+
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    const { examId, examineeId } = await chrome.storage.sync.get()
+    fetch('http://127.0.0.1:8000/api/activities', {
+      body: JSON.stringify({
+        name: 'LOSE_WINDOW_FOCUS',
+        description: 'has opened another application.',
+        examId,
+        examineeId,
+        isSuspicious: true,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+  }
+})
