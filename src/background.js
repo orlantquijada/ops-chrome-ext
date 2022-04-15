@@ -115,6 +115,10 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
     ? searchQueryStringParser(tab.url, searchEngineUsed.queryParam)
     : null
 
+  function removeQueryParams(url) {
+    return url.split('?')[0]
+  }
+
   if (searchString) {
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
@@ -133,7 +137,7 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'ACCESSED_SITE',
-        description: `has accessed ${tab.url}${
+        description: `has accessed ${removeQueryParams(tab.url)}${
           tab.incognito ? ' (incognito)' : ''
         }.`,
         examId,
