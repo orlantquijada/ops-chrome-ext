@@ -40,7 +40,6 @@ async function handler(activeInfo) {
   const { examId, examineeId, url } = await chrome.storage.sync.get()
 
   const tab = await chrome.tabs.get(activeInfo.tabId)
-  await chrome.storage.sync.set({ activeTabUrl: tab.url })
 
   const returned = url === tab.url
 
@@ -68,38 +67,57 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
   // does not track usage in incognito
   const { examId, examineeId } = await chrome.storage.sync.get()
 
-  const searchEngines = [
-    'google.com',
-    'yahoo.com',
-    'bing.com',
-    'duckduckgo.com',
-    'yandex.com',
-    'swisscows.com',
-    'startpage.com',
-    'searchencrypt.com',
-    'gibiru.com',
-    'wiki.com',
-    'onesearch.com',
-    'boardreader.com',
-    'givewater.com',
-    'ekoru.org',
-    'ecosia.org',
-    'archive.org',
-    'neeva.com',
-    'wolframalpha.com',
+  const SEARCH_ENGINES = [
+    {
+      url: 'google.com/search',
+      name: 'Google',
+      queryParam: 'q',
+    },
+    {
+      url: 'ecosia.org/search',
+      name: 'Ecosia',
+      queryParam: 'q',
+    },
+    {
+      url: 'search.brave.com/search',
+      name: 'Brave Search',
+      queryParam: 'q',
+    },
+    {
+      url: 'duckduckgo.com',
+      name: 'DuckDuckGo',
+      queryParam: 'q',
+    },
+    {
+      url: 'bing.com/search',
+      name: 'Bing',
+      queryParam: 'q',
+    },
+    {
+      url: 'search.yahoo.com/search',
+      name: 'Yahoo Search',
+      queryParam: 'p',
+    },
   ]
 
-  function googleQueryStringParser(url) {
-    return new URL(url).searchParams.get('q')
+  function searchQueryStringParser(url, queryParam) {
+    return new URL(url).searchParams.get(queryParam)
   }
 
-  if (searchEngines.some((searchEngine) => tab.url.includes(searchEngine)))
+  const searchEngineUsed = SEARCH_ENGINES.find((searchEngine) =>
+    tab.url.includes(searchEngine.url)
+  )
+  const searchString = searchEngineUsed
+    ? searchQueryStringParser(tab.url, searchEngineUsed.queryParam)
+    : null
+
+  if (searchString) {
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'USED_SEARCH_ENGINE',
-        description: `has searched "${googleQueryStringParser(
-          tab.url
-        )}" on google ${tab.incognito ? '(incognito)' : ''}.`,
+        description: `has searched "${searchString}" on ${
+          searchEngineUsed.name
+        }${tab.incognito ? ' (incognito)' : ''}.`,
         examId,
         examineeId,
         isSuspicious: true,
@@ -107,7 +125,7 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
-  else if (!tab.url.startsWith('chrome')) {
+  } else if (!tab.url.startsWith('chrome')) {
     fetch('http://127.0.0.1:8000/api/activities', {
       body: JSON.stringify({
         name: 'ACCESSED_SITE',
