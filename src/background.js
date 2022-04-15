@@ -4,22 +4,26 @@ async function startExamHandler() {
     'examineeId',
   ])
 
-  // listen for `alt-tabs`
-  window.addEventListener('blur', async (asd) => {
-    const { url, activeTabUrl } = await asd.target.chrome.storage.sync.get()
-
-    if (url === activeTabUrl)
-      fetch('http://127.0.0.1:8000/api/activities', {
-        body: JSON.stringify({
-          name: 'LOSE_WINDOW_FOCUS',
-          description: 'has opened another application.',
-          examId,
-          examineeId,
-          isSuspicious: true,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      })
+  window.addEventListener('keydown', async (event) => {
+    const pasteCode = 'KeyV'
+    const withMeta = event.metaKey || event.ctrlKey
+    if (
+      (withMeta && event.code === pasteCode) ||
+      (withMeta && event.shiftKey && event.code === pasteCode)
+    )
+      navigator.clipboard.readText().then((pastedText) =>
+        fetch('http://127.0.0.1:8000/api/activities', {
+          body: JSON.stringify({
+            name: 'LOSE_WINDOW_FOCUS',
+            description: `did paste ${pastedText}`,
+            examId,
+            examineeId,
+            isSuspicious: true,
+          }),
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+        })
+      )
   })
 
   // wip: confirm exit exam
