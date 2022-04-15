@@ -14,7 +14,8 @@
     "activeTab",
     "storage",
     "scripting",
-    "idle"
+    "idle",
+    "clipboardRead"
   ],
-  "host_permissions": ["*://*/*"]
+  "host_permissions": ["*://docs.google.com/forms/*"]
 }

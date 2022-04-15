@@ -1,3 +1,4 @@
+// import { ReactNode, useEffect, useReducer, useState } from 'react'
 import { ReactNode, useReducer } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -28,6 +29,16 @@ export default function LoginScreen() {
     formState: { errors },
   } = useForm<FormFields>()
 
+  // const [loading, setLoading] = useState(true)
+  // const [currentExamId, setCurrentExamId] = useState(0)
+
+  // useEffect(() => {
+  //   chrome.storage.sync.get().then((keys) => {
+  //     if (keys.examId) setCurrentExamId(keys.examId)
+  //     setLoading(false)
+  //   })
+  // }, [])
+
   const onSubmit = async (values: FormFields) => {
     try {
       await signin(values).then(() => {
@@ -38,7 +49,17 @@ export default function LoginScreen() {
     }
   }
 
+  // if (loading) return <div>loading</div>
   if (user) {
+    // if (currentExamId)
+    //   return (
+    //     <Navigate
+    //       to={`/exams/${currentExamId}`}
+    //       state={{ from: location }}
+    //       replace
+    //     />
+    //   )
+
     return <Navigate to="/exams" state={{ from: location }} replace />
   }
 

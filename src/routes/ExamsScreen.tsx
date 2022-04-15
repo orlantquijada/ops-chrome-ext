@@ -16,6 +16,8 @@ export default function ExamsScreen() {
     options: { enabled: Boolean(user?.id) },
   })
 
+  if (isLoading) return <div>loading...</div>
+
   return (
     <Layout css={{ py: '1.5rem', px: '1.5rem' }}>
       <Header>
@@ -31,18 +33,6 @@ export default function ExamsScreen() {
       </Header>
 
       <Main>
-        {/* <button onClick={() => chrome.storage.sync.set({ n: Math.random() })}>
-          set
-        </button>
-        <button
-          onClick={async () => {
-            console.log(await chrome.storage.sync.get())
-          }}
-        >
-          get
-        </button>
-        */}
-        {/* <button onClick={() => chrome.storage.sync.clear()}>clear</button> */}
         <Text as="h1" color="bloo-light-primary" fontSize="2xl">
           Exams
         </Text>

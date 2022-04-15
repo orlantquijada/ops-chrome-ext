@@ -9,6 +9,7 @@ import ClassesScreen from './routes/ClassesScreen'
 import ExamsScreen from './routes/ExamsScreen'
 import useAuth from './utils/stores/auth'
 import EnableIncognitoScreen from './routes/EnableIncognitoScreen'
+// import ExamsDetailScreen from './routes/ExamsDetailScreen'
 
 const queryClient = new QueryClient()
 
@@ -51,6 +52,14 @@ function App() {
             </RequireAuth>
           }
         />
+        {/* <Route
+          path="exams/:examId"
+          element={
+            <RequireAuth>
+              <ExamsDetailScreen />
+            </RequireAuth>
+          }
+        /> */}
       </Routes>
     </QueryClientProvider>
   )
