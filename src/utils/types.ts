@@ -25,17 +25,24 @@ export interface User {
   createdAt: Date
 }
 
+export interface UserWithActivity extends User {
+  Activity: Activity[]
+}
+
 export interface Exam {
   id: number
   classId: number
   link: string
   name: string
   description?: string
+  status: ExamStatus
   platform: Platform
   startTime: Date
   endTime: Date
   createdAt: Date
 }
+
+export type ExamStatus = 'UPCOMING' | 'ONGOING' | 'FINISHED'
 
 export type ActivityType =
   | 'SWITCHED_TAB'
@@ -56,4 +63,6 @@ export interface Activity {
   examId: Exam['id']
   examineeId: User['id']
   isSuspicious: boolean
+  Examinee: User
+  createdAt: Date
 }
