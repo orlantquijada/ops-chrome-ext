@@ -1,4 +1,4 @@
-import { Exam, Activity, User, ActivityType } from '../types'
+import { Exam, User, ActivityType } from '../types'
 import axios from './axios'
 
 export interface CreateRequestBody {
