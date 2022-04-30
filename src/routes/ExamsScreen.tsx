@@ -12,7 +12,7 @@ export default function ExamsScreen() {
   const user = useAuth((state) => state.user)
 
   const { data: exams, isLoading } = useExams({
-    params: { examineeId: user?.id },
+    params: { examineeId: user?.id, status: 'ONGOING' },
     options: { enabled: Boolean(user?.id) },
   })
 
@@ -36,7 +36,7 @@ export default function ExamsScreen() {
         <Text as="h1" color="bloo-light-primary" fontSize="2xl">
           Exams
         </Text>
-        <Flex direction="column" css={{ mt: '$4' }}>
+        <Flex direction="column" gap="2" css={{ py: '$4' }}>
           {exams?.length ? (
             exams.map((exam) => <ExamCard exam={exam} key={exam.id} />)
           ) : (
