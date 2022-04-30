@@ -1,5 +1,6 @@
 import { create } from '../utils/api/activities'
 import { Exam } from '../utils/types'
+import { isEarly } from '../utils/methods'
 import Button, { buttonStyles } from './Button'
 import Flex from './Flex'
 import Text from './Text'
@@ -7,6 +8,8 @@ import useAuth from '../utils/stores/auth'
 
 export default function ExamCard({ exam }: { exam: Exam }) {
   const user = useAuth((s) => s.user)
+
+  const isLate = !isEarly(exam.startTime, exam.endTime)
 
   return (
     <Flex
@@ -37,9 +40,11 @@ export default function ExamCard({ exam }: { exam: Exam }) {
               url: activeTab[0].url,
             })
             await create({
-              isSuspicious: false,
+              isSuspicious: isLate,
               name: 'JOINED_EXAM',
-              description: 'has started answering the exam.',
+              description: isLate
+                ? 'is late in starting the exam.'
+                : 'has started answering the exam.',
               examId: exam.id,
               examineeId: user?.id as number,
             })

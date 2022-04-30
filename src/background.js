@@ -176,7 +176,7 @@ chrome.idle.onStateChanged.addListener(async (idleState) => {
   fetch('http://127.0.0.1:8000/api/activities', {
     body: JSON.stringify({
       name: 'WENT_IDLE',
-      description: 'went idle for 2 minutes',
+      description: 'went idle for after 2 minutes',
       examId,
       examineeId,
       isSuspicious: true,
