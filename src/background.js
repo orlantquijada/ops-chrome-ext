@@ -205,3 +205,22 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     })
   }
 })
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === 'finish-exam') {
+    const { examId, examineeId } = await chrome.storage.sync.get()
+
+    fetch('http://127.0.0.1:8000/api/activities', {
+      body: JSON.stringify({
+        name: 'FINISHED_EXAM',
+        description: 'has finished the exam',
+        examId,
+        examineeId,
+        isSuspicious: false,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+    chrome.storage.sync.clear()
+  }
+})

@@ -48,6 +48,9 @@ export default function ExamCard({ exam }: { exam: Exam }) {
               examId: exam.id,
               examineeId: user?.id as number,
             })
+            chrome.alarms.create('finish-exam', {
+              when: +new Date(exam.endTime),
+            })
             window.close()
           }}
         >

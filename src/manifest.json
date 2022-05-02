@@ -15,7 +15,8 @@
     "storage",
     "scripting",
     "idle",
-    "clipboardRead"
+    "clipboardRead",
+    "alarms"
   ],
   "host_permissions": ["*://docs.google.com/forms/*"]
 }
