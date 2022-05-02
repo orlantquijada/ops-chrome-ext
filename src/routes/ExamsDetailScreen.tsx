@@ -1,5 +1,6 @@
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Button from '../components/Button'
+import Layout from '../components/Layout'
 import { create } from '../utils/api/activities'
 import { useExam } from '../utils/hooks/useExams'
 import { isEarly } from '../utils/methods'
@@ -9,6 +10,7 @@ export default function ExamsDetailScreen() {
   const user = useAuth((s) => s.user)
   const params = useParams<{ examId: string }>()
   const examId = params.examId ? parseInt(params.examId, 10) : 0
+  const navigate = useNavigate()
 
   const { data: exam, status } = useExam(examId, { enabled: Boolean(examId) })
 
@@ -16,7 +18,7 @@ export default function ExamsDetailScreen() {
 
   const hasFinishedEarly = isEarly(exam.startTime, exam.endTime)
   return (
-    <div>
+    <Layout>
       <h1>{exam.name}</h1>
       <Button
         variant="primary"
@@ -30,13 +32,14 @@ export default function ExamsDetailScreen() {
             examId,
             examineeId: user.id,
             isSuspicious: hasFinishedEarly,
+          }).then(() => {
+            chrome.storage.sync.clear()
+            navigate('/exams')
           })
-
-          chrome.storage.sync.clear()
         }}
       >
         Finish Exam
       </Button>
-    </div>
+    </Layout>
   )
 }
