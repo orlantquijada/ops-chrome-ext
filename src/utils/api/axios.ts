@@ -1,5 +1,7 @@
 import axiosInstance from 'axios'
 
-const axios = axiosInstance.create({ baseURL: 'http://127.0.0.1:8000/api/' })
+const axios = axiosInstance.create({
+  baseURL: 'https://ops-api-production.up.railway.app/api/',
+})
 
 export default axios
