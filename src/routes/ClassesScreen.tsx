@@ -95,10 +95,7 @@ export default function ClassesScreen() {
             ))
           ) : (
             <Text color="bloo-light-primary">
-              Not enrolled in any class{' '}
-              <Button size="sm" onClick={() => setOpen(true)}>
-                Enrol
-              </Button>
+              You are not enrolled in any class.
             </Text>
           )}
         </Flex>

@@ -45,7 +45,7 @@ export default function LoginScreen() {
         navigate('/exams')
       })
     } catch (error) {
-      alert('asdasd')
+      alert('Your email or password is incorrect.')
     }
   }
 
