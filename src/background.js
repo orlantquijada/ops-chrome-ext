@@ -12,7 +12,7 @@ async function startExamHandler() {
       (withMeta && event.shiftKey && event.code === pasteCode)
     )
       navigator.clipboard.readText().then((pastedText) =>
-        fetch('http://127.0.0.1:8000/api/activities', {
+        fetch('https://ops-api-production.up.railway.app/api/activities', {
           body: JSON.stringify({
             name: 'LOSE_WINDOW_FOCUS',
             description: `did paste ${pastedText}`,
@@ -47,7 +47,7 @@ async function handler(activeInfo) {
 
   const returned = url === tab.url
 
-  fetch('http://127.0.0.1:8000/api/activities', {
+  fetch('https://ops-api-production.up.railway.app/api/activities', {
     body: JSON.stringify({
       name: returned ? 'RETURNED' : 'SWITCHED_TAB',
       description: returned
@@ -120,7 +120,7 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
   }
 
   if (searchString) {
-    fetch('http://127.0.0.1:8000/api/activities', {
+    fetch('https://ops-api-production.up.railway.app/api/activities', {
       body: JSON.stringify({
         name: 'USED_SEARCH_ENGINE',
         description: `has searched "${searchString}" on ${
@@ -134,7 +134,7 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
       method: 'POST',
     })
   } else if (!tab.url.startsWith('chrome')) {
-    fetch('http://127.0.0.1:8000/api/activities', {
+    fetch('https://ops-api-production.up.railway.app/api/activities', {
       body: JSON.stringify({
         name: 'ACCESSED_SITE',
         description: `has accessed ${removeQueryParams(tab.url)}${
@@ -173,7 +173,7 @@ chrome.idle.onStateChanged.addListener(async (idleState) => {
 
   const { examId, examineeId } = await chrome.storage.sync.get()
 
-  fetch('http://127.0.0.1:8000/api/activities', {
+  fetch('https://ops-api-production.up.railway.app/api/activities', {
     body: JSON.stringify({
       name: 'WENT_IDLE',
       description: 'went idle for after 2 minutes',
@@ -192,7 +192,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     const { examId, examineeId } = await chrome.storage.sync.get()
-    fetch('http://127.0.0.1:8000/api/activities', {
+    fetch('https://ops-api-production.up.railway.app/api/activities', {
       body: JSON.stringify({
         name: 'LOSE_WINDOW_FOCUS',
         description: 'has opened another application.',
@@ -210,7 +210,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'finish-exam') {
     const { examId, examineeId } = await chrome.storage.sync.get()
 
-    fetch('http://127.0.0.1:8000/api/activities', {
+    fetch('https://ops-api-production.up.railway.app/api/activities', {
       body: JSON.stringify({
         name: 'FINISHED_EXAM',
         description: 'has finished the exam',
