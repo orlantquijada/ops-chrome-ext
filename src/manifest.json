@@ -18,5 +18,5 @@
     "clipboardRead",
     "alarms"
   ],
-  "host_permissions": ["*://docs.google.com/forms/*"]
+  "host_permissions": ["*://docs.google.com/forms/*", "*://forms.office.com/Pages/*"]
 }

@@ -1,4 +1,5 @@
 async function startExamHandler() {
+  // !IMPORTANT: currently does not work on production / not localhost
   const { examId, examineeId } = await chrome.storage.sync.get([
     'examId',
     'examineeId',
@@ -29,8 +30,19 @@ async function startExamHandler() {
   // wip: confirm exit exam
   window.addEventListener(
     'beforeunload',
-    (e) => {
+    async (e) => {
       e.preventDefault()
+      // fetch('https://ops-api-production.up.railway.app/api/activities', {
+      //   body: JSON.stringify({
+      //     name: 'LOSE_WINDOW_FOCUS',
+      //     description: 'exit',
+      //     examId,
+      //     examineeId,
+      //     isSuspicious: true,
+      //   }),
+      //   headers: { 'Content-Type': 'application/json' },
+      //   method: 'POST',
+      // })
       return (e.returnValue = 'Wowowow')
     },
     { capture: true }
@@ -190,8 +202,14 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   const { startExam } = await chrome.storage.sync.get()
   if (!startExam) return
 
+  const { examId, examineeId, url } = await chrome.storage.sync.get()
+  const examTab = await chrome.tabs.query({ url })
+  const activeTab = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  })
+
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    const { examId, examineeId } = await chrome.storage.sync.get()
     fetch('https://ops-api-production.up.railway.app/api/activities', {
       body: JSON.stringify({
         name: 'LOSE_WINDOW_FOCUS',
@@ -199,6 +217,21 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
         examId,
         examineeId,
         isSuspicious: true,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+  } else if (
+    examTab[0].windowId === windowId &&
+    activeTab[0].url === examTab[0].url
+  ) {
+    fetch('https://ops-api-production.up.railway.app/api/activities', {
+      body: JSON.stringify({
+        name: 'RETURNED',
+        description: 'has returned to the exam tab.',
+        examId,
+        examineeId,
+        isSuspicious: false,
       }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
