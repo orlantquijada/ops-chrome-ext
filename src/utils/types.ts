@@ -29,18 +29,37 @@ export interface UserWithActivity extends User {
   Activity: Activity[]
 }
 
-export interface Exam {
+export type GoogleFormURL =
+  `https://docs.google.com/forms/d/e/${string}/viewform?usp=sf_link`
+
+export type OfficeFormURL =
+  `https://forms.office.com/Pages/ResponsePage.aspx?id=${string}`
+
+export type MoodleFormURL = `https://${string}`
+
+export type Exam = {
   id: number
   classId: number
-  link: string
   name: string
   description?: string
   status: ExamStatus
-  platform: Platform
   startTime: Date
   endTime: Date
   createdAt: Date
-}
+} & (
+  | {
+      platform: 'GOOGLE_FORMS'
+      link: GoogleFormURL
+    }
+  | {
+      platform: 'TEAMS'
+      link: OfficeFormURL
+    }
+  | {
+      platform: 'MOODLE'
+      link: MoodleFormURL
+    }
+)
 
 export type ExamStatus = 'UPCOMING' | 'ONGOING' | 'FINISHED'
 
