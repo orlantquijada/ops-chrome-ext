@@ -1,53 +1,4 @@
-async function startExamHandler() {
-  // !IMPORTANT: currently does not work on production / not localhost
-  const { examId, examineeId } = await chrome.storage.sync.get([
-    'examId',
-    'examineeId',
-  ])
-
-  window.addEventListener('keydown', async (event) => {
-    const pasteCode = 'KeyV'
-    const withMeta = event.metaKey || event.ctrlKey
-    if (
-      (withMeta && event.code === pasteCode) ||
-      (withMeta && event.shiftKey && event.code === pasteCode)
-    )
-      navigator.clipboard.readText().then((pastedText) =>
-        fetch('https://ops-api-production.up.railway.app/api/activities', {
-          body: JSON.stringify({
-            name: 'LOSE_WINDOW_FOCUS',
-            description: `did paste ${pastedText}`,
-            examId,
-            examineeId,
-            isSuspicious: true,
-          }),
-          headers: { 'Content-Type': 'application/json' },
-          method: 'POST',
-        })
-      )
-  })
-
-  // wip: confirm exit exam
-  window.addEventListener(
-    'beforeunload',
-    async (e) => {
-      e.preventDefault()
-      // fetch('https://ops-api-production.up.railway.app/api/activities', {
-      //   body: JSON.stringify({
-      //     name: 'LOSE_WINDOW_FOCUS',
-      //     description: 'exit',
-      //     examId,
-      //     examineeId,
-      //     isSuspicious: true,
-      //   }),
-      //   headers: { 'Content-Type': 'application/json' },
-      //   method: 'POST',
-      // })
-      return (e.returnValue = 'Wowowow')
-    },
-    { capture: true }
-  )
-}
+const endpoint = 'http://127.0.0.1:8000/api/activities'
 
 async function handler(activeInfo) {
   const { startExam } = await chrome.storage.sync.get()
@@ -59,12 +10,12 @@ async function handler(activeInfo) {
 
   const returned = url === tab.url
 
-  fetch('https://ops-api-production.up.railway.app/api/activities', {
+  fetch(endpoint, {
     body: JSON.stringify({
       name: returned ? 'RETURNED' : 'SWITCHED_TAB',
       description: returned
         ? 'has returned to the exam tab.'
-        : `switched to another tab${tab.incognito ? ' (incognito)' : ''}.`,
+        : `1 switched to another tab${tab.incognito ? ' (incognito)' : ''}.`,
       examId,
       examineeId,
       isSuspicious: !returned,
@@ -76,12 +27,23 @@ async function handler(activeInfo) {
 
 chrome.tabs.onActivated.addListener(handler)
 chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
+  const { url, settled } = await chrome.storage.sync.get()
+
+  if (!changeInfo.url && url === tab.url && !settled) {
+    chrome.storage.sync.set({
+      startExam: true,
+      ssttled: true,
+    })
+  }
+})
+
+chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
   const { startExam } = await chrome.storage.sync.get()
   if (!changeInfo.url || !startExam) return
 
   // search engine usage is tracked in `tabs.onUpdate` since the alternative, `history.onVisited`
   // does not track usage in incognito
-  const { examId, examineeId } = await chrome.storage.sync.get()
+  const { examId, examineeId, url } = await chrome.storage.sync.get()
 
   const SEARCH_ENGINES = [
     {
@@ -132,7 +94,7 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
   }
 
   if (searchString) {
-    fetch('https://ops-api-production.up.railway.app/api/activities', {
+    fetch(endpoint, {
       body: JSON.stringify({
         name: 'USED_SEARCH_ENGINE',
         description: `has searched "${searchString}" on ${
@@ -145,8 +107,8 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
-  } else if (!tab.url.startsWith('chrome')) {
-    fetch('https://ops-api-production.up.railway.app/api/activities', {
+  } else if (!tab.url.startsWith('chrome') && tab.url !== url) {
+    fetch(endpoint, {
       body: JSON.stringify({
         name: 'ACCESSED_SITE',
         description: `has accessed ${removeQueryParams(tab.url)}${
@@ -162,18 +124,25 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
   }
 })
 
-chrome.storage.onChanged.addListener(async (changes) => {
-  console.log('changes', changes)
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes['settled']?.newValue === false) {
+    const isLate = changes['isLate'].newValue
+    const examId = changes['examId'].newValue
+    const examineeId = changes['examineeId'].newValue
 
-  if (changes['startExam']?.newValue === true) {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
-
-    for (const tab of tabs) {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id, allFrames: true },
-        func: startExamHandler,
-      })
-    }
+    fetch(endpoint, {
+      body: JSON.stringify({
+        name: 'JOINED_EXAM',
+        description: isLate
+          ? 'is late in starting the exam.'
+          : 'has started answering the exam.',
+        examId,
+        examineeId,
+        isSuspicious: false,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
   }
 })
 
@@ -185,7 +154,7 @@ chrome.idle.onStateChanged.addListener(async (idleState) => {
 
   const { examId, examineeId } = await chrome.storage.sync.get()
 
-  fetch('https://ops-api-production.up.railway.app/api/activities', {
+  fetch(endpoint, {
     body: JSON.stringify({
       name: 'WENT_IDLE',
       description: 'went idle for after 2 minutes',
@@ -210,7 +179,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   })
 
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    fetch('https://ops-api-production.up.railway.app/api/activities', {
+    fetch(endpoint, {
       body: JSON.stringify({
         name: 'LOSE_WINDOW_FOCUS',
         description: 'has opened another application.',
@@ -221,11 +190,22 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
-  } else if (
-    examTab[0].windowId === windowId &&
-    activeTab[0].url === examTab[0].url
-  ) {
-    fetch('https://ops-api-production.up.railway.app/api/activities', {
+  } else if (windowId !== examTab[0].windowId) {
+    fetch(endpoint, {
+      body: JSON.stringify({
+        name: 'SWITCHED_TAB',
+        description: `switched to another tab${
+          activeTab[0].incognito ? ' (incognito)' : ''
+        }.`,
+        examId,
+        examineeId,
+        isSuspicious: true,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+  } else if (activeTab[0].url === examTab[0].url) {
+    fetch(endpoint, {
       body: JSON.stringify({
         name: 'RETURNED',
         description: 'has returned to the exam tab.',
@@ -243,7 +223,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'finish-exam') {
     const { examId, examineeId } = await chrome.storage.sync.get()
 
-    fetch('https://ops-api-production.up.railway.app/api/activities', {
+    fetch(endpoint, {
       body: JSON.stringify({
         name: 'FINISHED_EXAM',
         description: 'has finished the exam',

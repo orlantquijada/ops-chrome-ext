@@ -21,7 +21,9 @@ export default function ExamsDetailScreen() {
   const navigate = useNavigate()
 
   const { data: exam, status } = useExam(examId, { enabled: Boolean(examId) })
-  const { data: classData } = useClass(exam?.classId as number)
+  const { data: classData } = useClass(exam?.classId as number, {
+    enabled: Boolean(exam?.classId),
+  })
 
   if (status !== 'success' || !user) return <div>loading</div>
 
