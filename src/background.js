@@ -1,4 +1,4 @@
-const endpoint = 'http://127.0.0.1:8000/api/activities'
+const endpoint = 'https://ops-api-production.up.railway.app/api/activities'
 
 async function handler(activeInfo) {
   const { startExam } = await chrome.storage.sync.get()

@@ -1,13 +1,17 @@
 // import { create } from '../utils/api/activities'
 import { Exam } from '../utils/types'
-import { isEarly } from '../utils/methods'
+import { isEarly, remainingTime } from '../utils/methods'
 import { buttonStyles } from './Button'
 import Flex from './Flex'
 import Text from './Text'
 import useAuth from '../utils/stores/auth'
+import Box from './Box'
+import { formatTime } from '../utils/formatters'
+import { useNavigate } from 'react-router'
 
 export default function ExamCard({ exam }: { exam: Exam }) {
   const user = useAuth((s) => s.user)
+  const navigate = useNavigate()
 
   const handleStartExam = async () => {
     const url = new URL(exam.link)
@@ -25,34 +29,94 @@ export default function ExamCard({ exam }: { exam: Exam }) {
     })
   }
 
+  const isOngoing = exam.status === 'ONGOING'
+
   return (
     <Flex
       justify="between"
+      direction="column"
       css={{
         backgroundColor: '$bloo-light-30',
         p: '1rem',
         w: '100%',
-        borderRadius: '5px',
+        borderRadius: '8px',
       }}
+      gap="2"
     >
-      <Text color="bloo-light-primary" weight="semibold" fontSize="lg">
-        {exam.name}
-      </Text>
-      <Flex gap="2" align="center">
-        <a
-          href={exam.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonStyles({ variant: 'primary', size: 'sm' })}
-          onClick={handleStartExam}
+      {isOngoing ? (
+        <Box
+          css={{
+            backgroundColor: '$bloo-light-10',
+            borderRadius: '8px',
+            p: '.25rem',
+            w: 'fit-content',
+          }}
         >
-          Start Exam
-        </a>
-      </Flex>
+          <Text color="white1" weight="semibold" fontSize="lg">
+            {exam.name}
+          </Text>
+        </Box>
+      ) : (
+        <Flex direction="row" justify="between" align="center">
+          <Text color="bloo-light-primary" weight="bold" fontSize="lg">
+            {exam.name}
+          </Text>
+          <Badge
+            label={new Date(exam.startTime).toLocaleString('en-us', {
+              weekday: 'long',
+            })}
+          />
+        </Flex>
+      )}
+
+      {isOngoing ? (
+        <Flex gap="2" justify="between" align="end" direction="row">
+          <Flex gap="1" direction="column">
+            <Text color="bloo-light-primary" fontSize="sm" weight="semibold">
+              Time Left
+            </Text>
+            <Text color="bloo-light-20" fontSize="sm" weight="semibold">
+              {remainingTime(exam.endTime, () => {
+                navigate('/exams')
+              })}
+            </Text>
+          </Flex>
+          <a
+            href={exam.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonStyles({ variant: 'primary', size: 'sm' })}
+            onClick={handleStartExam}
+          >
+            Start Exam
+          </a>
+        </Flex>
+      ) : (
+        <Text color="bloo-light-20" fontSize="sm" weight="semibold">
+          {formatTime(exam.startTime)} - {formatTime(exam.endTime)}
+        </Text>
+      )}
     </Flex>
   )
 }
 
+function Badge({ label }: { label: string }) {
+  return (
+    <Box
+      css={{
+        h: 'fit-content',
+        backgroundColor: '$white1',
+        border: '1px solid $bloo-light-10',
+        borderRadius: '999px',
+        px: '.45rem',
+      }}
+    >
+      <Text color="bloo-light-10" weight="semibold" fontSize="xs">
+        {label}
+      </Text>
+    </Box>
+  )
+}
 // const parseGoogleFormURL = (url: GoogleFormURL) => {
 //   // google form url pattern
 //   // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link

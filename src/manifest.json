@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Thesis",
+  "name": "OPS",
   "description": "A quick way to browse top posts from DEV Community.",
   "version": "0.0.1",
   "action": {
@@ -18,5 +18,8 @@
     "clipboardRead",
     "alarms"
   ],
-  "host_permissions": ["*://docs.google.com/forms/*", "*://forms.office.com/Pages/*"]
+  "host_permissions": [
+    "*://docs.google.com/forms/*",
+    "*://forms.office.com/Pages/*"
+  ]
 }

@@ -12,11 +12,14 @@ export default function ExamsScreen() {
   const user = useAuth((state) => state.user)
 
   const { data: exams, isLoading } = useExams({
-    params: { examineeId: user?.id, status: 'ONGOING' },
+    params: { examineeId: user?.id },
     options: { enabled: Boolean(user?.id) },
   })
 
   if (isLoading) return <div>loading...</div>
+
+  const ongoingExams = exams?.filter((exam) => exam.status === 'ONGOING')
+  const upcomingExams = exams?.filter((exam) => exam.status === 'UPCOMING')
 
   return (
     <Layout css={{ py: '1.5rem', px: '1.5rem' }}>
@@ -33,16 +36,26 @@ export default function ExamsScreen() {
       </Header>
 
       <Main>
-        <Text as="h1" color="bloo-light-primary" fontSize="2xl">
+        <Text
+          as="h1"
+          color="bloo-light-primary"
+          fontSize="2xl"
+          css={{ mb: '1rem' }}
+        >
           Exams
         </Text>
         <Flex direction="column" gap="2" css={{ py: '$4' }}>
-          {exams?.length ? (
-            exams.map((exam) => <ExamCard exam={exam} key={exam.id} />)
+          <SectionHeader>Ongoing</SectionHeader>
+          {ongoingExams?.length ? (
+            ongoingExams.map((exam) => <ExamCard exam={exam} key={exam.id} />)
           ) : (
-            <Text color="bloo-light-primary">
-              No ongoing and upcoming exams right now
-            </Text>
+            <Text color="bloo-light-primary">No ongoing exams right now.</Text>
+          )}
+          <SectionHeader>Upcoming</SectionHeader>
+          {upcomingExams?.length ? (
+            upcomingExams.map((exam) => <ExamCard exam={exam} key={exam.id} />)
+          ) : (
+            <Text color="bloo-light-primary"> No exams upcoming.</Text>
           )}
         </Flex>
       </Main>
@@ -58,4 +71,10 @@ const Header = styled('header', {
 
 const Main = styled('main', {
   mt: '$5',
+})
+
+const SectionHeader = styled('div', {
+  color: '$bloo-light-20',
+  fontSize: 'large',
+  fontWeight: '$bold',
 })
