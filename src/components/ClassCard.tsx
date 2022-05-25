@@ -1,4 +1,4 @@
-import { Class, Exam } from '../utils/types'
+import { Class } from '../utils/types'
 import Box from './Box'
 import Text from './Text'
 
@@ -12,7 +12,7 @@ export default function ClassCard({ classData }: { classData: Class }) {
         borderRadius: '5px',
       }}
     >
-      <Text color="bloo-light-primary" weight="semibold" fontSize="lg">
+      <Text color="bloo-light-primary" weight="extrabold" fontSize="3xl">
         {classData.courseCode} - {classData.section}
       </Text>
     </Box>
