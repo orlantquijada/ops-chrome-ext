@@ -35,7 +35,7 @@ export type GoogleFormURL =
 export type OfficeFormURL =
   `https://forms.office.com/Pages/ResponsePage.aspx?id=${string}`
 
-export type MoodleFormURL = `https://${string}`
+export type MoodleFormURL = `https://lair.education/${string}/attempt.php`
 
 export type Exam = {
   id: number

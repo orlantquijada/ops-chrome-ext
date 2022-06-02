@@ -1,5 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Exam } from '../utils/types'
+import {
+  Exam,
+  GoogleFormURL,
+  MoodleFormURL,
+  OfficeFormURL,
+  Platform,
+} from '../utils/types'
 import { isEarly } from '../utils/methods'
 import { buttonStyles } from './Button'
 import Flex from './Flex'
@@ -23,6 +30,8 @@ export default function ExamCard({ exam }: { exam: Exam }) {
       examId: exam.id,
       examineeId: user?.id,
       url: `${url.origin}${url.pathname}`,
+      platform: exam.platform,
+      formId: getFormId(exam.platform, exam.link),
       isLate,
     })
     chrome.alarms.create('finish-exam', {
@@ -161,15 +170,38 @@ function Badge({ label }: { label: string }) {
   )
 }
 
-// const parseGoogleFormURL = (url: GoogleFormURL) => {
-//   // google form url pattern
-//   // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link
-//   const splitURL = url.split('/')
+const parseGoogleFormURL = (url: GoogleFormURL) => {
+  // google form url pattern
+  // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link
+  const splitURL = url.split('/')
 
-//   return {
-//     id: splitURL[splitURL.length - 2],
-//   }
-// }
+  return {
+    id: splitURL[splitURL.length - 2],
+  }
+}
+
+const parseTeamsFormURL = (url: OfficeFormURL) => {
+  // google form url pattern
+  // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link
+  return {
+    id: new URL(url).searchParams.get('id'),
+  }
+}
+
+const parseMoodleFormURL = (url: MoodleFormURL) => {
+  // moodle form url pattern
+  // https://lair.education/mod/quiz/attempt.php?attempt={attempt_id}&cmid={form_id}
+  const params = new URL(url).searchParams
+  return {
+    id: params.get('cmid') || params.get('id'),
+  }
+}
+
+const getFormId = (platform: Platform, url: string) => {
+  if (platform === 'TEAMS') return parseTeamsFormURL(url as any).id
+  if (platform === 'GOOGLE_FORMS') return parseGoogleFormURL(url as any).id
+  return parseMoodleFormURL(url as any).id
+}
 
 // const isOnCorrectExamURL = async (examPlatform: Platform, examUrl: string) => {
 //   const activeTab = await chrome.tabs.query({
