@@ -1,4 +1,4 @@
-const endpoint = 'https://ops-api-production.up.railway.app/api/activities'
+const endpoint = 'https://ops-api-production.up.railway.app/api/v2/activities'
 // const endpoint = 'http://127.0.0.1:8000/api/activities'
 
 async function handler(activeInfo) {
