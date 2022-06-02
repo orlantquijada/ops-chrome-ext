@@ -8,6 +8,7 @@ export default function ClassCard({ classData }: { classData: Class }) {
       css={{
         backgroundColor: '$bloo-light-30',
         p: '1rem',
+        my: '0.25rem',
         w: '100%',
         borderRadius: '5px',
       }}

@@ -1,5 +1,5 @@
-// const endpoint = 'https://ops-api-production.up.railway.app/api/activities'
-const endpoint = 'http://127.0.0.1:8000/api/activities'
+const endpoint = 'https://ops-api-production.up.railway.app/api/activities'
+// const endpoint = 'http://127.0.0.1:8000/api/activities'
 
 async function handler(activeInfo) {
   const { startExam } = await chrome.storage.sync.get()
@@ -196,8 +196,9 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   const { startExam } = await chrome.storage.sync.get()
   if (!startExam) return
 
-  const { examId, examineeId, url } = await chrome.storage.sync.get()
-  const examTab = await chrome.tabs.query({ url })
+  const { examId, examineeId, formId } = await chrome.storage.sync.get()
+  const allTabs = await chrome.tabs.query({})
+  const examTab = allTabs.find(({ url }) => url.includes(formId))
   const activeTab = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -215,7 +216,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
-  } else if (windowId !== examTab[0].windowId) {
+  } else if (windowId !== examTab?.windowId) {
     fetch(endpoint, {
       body: JSON.stringify({
         name: 'SWITCHED_TAB',
@@ -229,7 +230,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
-  } else if (activeTab[0].url === examTab[0].url) {
+  } else if (activeTab[0].url === examTab.url) {
     fetch(endpoint, {
       body: JSON.stringify({
         name: 'RETURNED',
@@ -266,6 +267,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 const parseGoogleFormURL = (url) => {
   // google form url pattern
   // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link
+  if (!url.startsWith('https://docs.google.com/forms/')) return
   const splitURL = url.split('/')
 
   return {

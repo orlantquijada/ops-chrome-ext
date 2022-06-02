@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "ProctorAid",
-  "description": "A quick way to browse top posts from DEV Community.",
-  "version": "0.0.1",
+  "description": "Your most trusted proctoring assistance.",
+  "version": "2.0.1",
   "action": {
     "default_popup": "index.html"
   },
