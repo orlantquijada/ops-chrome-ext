@@ -1,6 +1,6 @@
-// import { create } from '../utils/api/activities'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Exam } from '../utils/types'
-import { isEarly, remainingTime } from '../utils/methods'
+import { isEarly } from '../utils/methods'
 import { buttonStyles } from './Button'
 import Flex from './Flex'
 import Text from './Text'
@@ -8,6 +8,7 @@ import useAuth from '../utils/stores/auth'
 import Box from './Box'
 import { formatTime } from '../utils/formatters'
 import { useNavigate } from 'react-router'
+import dayjs from 'dayjs'
 
 export default function ExamCard({ exam }: { exam: Exam }) {
   const user = useAuth((s) => s.user)
@@ -30,6 +31,10 @@ export default function ExamCard({ exam }: { exam: Exam }) {
   }
 
   const isOngoing = exam.status === 'ONGOING'
+
+  const finishCb = useCallback(() => {
+    navigate('/exams')
+  }, [])
 
   return (
     <Flex
@@ -75,11 +80,8 @@ export default function ExamCard({ exam }: { exam: Exam }) {
             <Text color="bloo-light-primary" fontSize="sm" weight="semibold">
               Time Left
             </Text>
-            <Text color="bloo-light-20" fontSize="sm" weight="semibold">
-              {remainingTime(exam.endTime, () => {
-                navigate('/exams')
-              })}
-            </Text>
+
+            <RemainingTime endTime={exam.endTime} finishCb={finishCb} />
           </Flex>
           <a
             href={exam.link}
@@ -100,6 +102,47 @@ export default function ExamCard({ exam }: { exam: Exam }) {
   )
 }
 
+function RemainingTime({
+  endTime,
+  finishCb,
+}: {
+  endTime: Date
+  finishCb: () => void
+}) {
+  const [durationLeft, setDurationLeft] = useState(() => {
+    return dayjs(endTime).unix() - dayjs().unix()
+  })
+
+  const intervalId = useRef<number>()
+
+  useEffect(() => {
+    const id = setInterval(() => setDurationLeft((val) => val - 1), 1000)
+    intervalId.current = id
+
+    return () => clearInterval(intervalId.current || id)
+  }, [])
+
+  useEffect(() => {
+    if (durationLeft <= 0) {
+      clearInterval(intervalId.current)
+      finishCb()
+    }
+  }, [durationLeft, finishCb])
+
+  const hour = Math.floor(durationLeft / 60 / 60)
+  const minute = Math.floor((durationLeft / 60) % 60)
+  const seconds = Math.floor(durationLeft % 60)
+
+  if (durationLeft <= 0) return null
+
+  return (
+    <Text color="bloo-light-primary" fontSize="sm">
+      {hour ? `${hour}h` : null} {minute ? `${minute}m` : null}{' '}
+      {seconds ? `${seconds}s` : '00s'}
+    </Text>
+  )
+}
+
 function Badge({ label }: { label: string }) {
   return (
     <Box
@@ -117,6 +160,7 @@ function Badge({ label }: { label: string }) {
     </Box>
   )
 }
+
 // const parseGoogleFormURL = (url: GoogleFormURL) => {
 //   // google form url pattern
 //   // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link
