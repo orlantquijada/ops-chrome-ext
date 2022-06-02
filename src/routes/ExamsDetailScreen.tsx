@@ -13,6 +13,7 @@ import dayjs from 'dayjs'
 import Logo from '../components/Logo'
 import { Platform } from '../utils/types'
 import { useClass } from '../utils/hooks/useClasses'
+import * as Dialog from '../components/Dialog'
 
 export default function ExamsDetailScreen() {
   const user = useAuth((s) => s.user)
@@ -83,26 +84,56 @@ export default function ExamsDetailScreen() {
         >
           {timeDescription}
         </Text>
-        <Button
-          variant="primary"
-          size="base"
-          onClick={() => {
-            create({
-              name: 'FINISHED_EXAM',
-              description: hasFinishedEarly
-                ? 'quickly finished the exam.'
-                : 'has finished the exam',
-              examId,
-              examineeId: user.id,
-              isSuspicious: hasFinishedEarly,
-            }).then(() => {
-              chrome.storage.sync.clear()
-              navigate('/exams')
-            })
-          }}
-        >
-          Finish Exam
-        </Button>
+
+        <Dialog.Root>
+          <Dialog.Trigger size="base" variant="primary">
+            Finish Exam
+          </Dialog.Trigger>
+          <Dialog.Content css={{ display: 'flex', flexDirection: 'column' }}>
+            <Dialog.Title
+              fontSize="lg"
+              color="bloo-light-primary"
+              weight="bold"
+              css={{ mb: '$2' }}
+            >
+              Are you sure?
+            </Dialog.Title>
+            <Dialog.Description css={{ mb: '$6' }}>
+              You won&apos;t be able to take the exam anymore.
+            </Dialog.Description>
+
+            <Flex gap="3" css={{ ml: 'auto' }}>
+              <Dialog.Close asChild>
+                <Button variant="unstyled" size="base" css={{ fontSize: '$1' }}>
+                  Cancel
+                </Button>
+              </Dialog.Close>
+              <Dialog.Close asChild>
+                <Button
+                  variant="primary"
+                  size="base"
+                  css={{ fontSize: '$1' }}
+                  onClick={() => {
+                    create({
+                      name: 'FINISHED_EXAM',
+                      description: hasFinishedEarly
+                        ? 'quickly finished the exam.'
+                        : 'has finished the exam',
+                      examId,
+                      examineeId: user.id,
+                      isSuspicious: hasFinishedEarly,
+                    }).then(() => {
+                      chrome.storage.sync.clear()
+                      navigate('/exams')
+                    })
+                  }}
+                >
+                  Finish Exam
+                </Button>
+              </Dialog.Close>
+            </Flex>
+          </Dialog.Content>
+        </Dialog.Root>
       </Flex>
     </Layout>
   )

@@ -1,21 +1,29 @@
-const endpoint = 'https://ops-api-production.up.railway.app/api/activities'
+// const endpoint = 'https://ops-api-production.up.railway.app/api/activities'
+const endpoint = 'http://127.0.0.1:8000/api/activities'
 
 async function handler(activeInfo) {
   const { startExam } = await chrome.storage.sync.get()
   if (!startExam) return
 
-  const { examId, examineeId, url } = await chrome.storage.sync.get()
+  const { examId, examineeId, formId, platform } =
+    await chrome.storage.sync.get()
 
   const tab = await chrome.tabs.get(activeInfo.tabId)
 
-  const returned = url === tab.url
+  let returned = false
+
+  try {
+    returned = formId === getFormId(platform, tab.url)
+  } catch (error) {
+    returned = false
+  }
 
   fetch(endpoint, {
     body: JSON.stringify({
       name: returned ? 'RETURNED' : 'SWITCHED_TAB',
       description: returned
         ? 'has returned to the exam tab.'
-        : `1 switched to another tab${tab.incognito ? ' (incognito)' : ''}.`,
+        : `switched to another tab${tab.incognito ? ' (incognito)' : ''}.`,
       examId,
       examineeId,
       isSuspicious: !returned,
@@ -27,9 +35,17 @@ async function handler(activeInfo) {
 
 chrome.tabs.onActivated.addListener(handler)
 chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
-  const { url, settled } = await chrome.storage.sync.get()
+  const { settled, platform, formId } = await chrome.storage.sync.get()
 
-  if (!changeInfo.url && url === tab.url && !settled) {
+  function equalityFn() {
+    try {
+      return formId === getFormId(platform, tab.url)
+    } catch (error) {
+      return false
+    }
+  }
+
+  if (!changeInfo.url && equalityFn() && !settled) {
     chrome.storage.sync.set({
       startExam: true,
       ssttled: true,
@@ -39,12 +55,21 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
 
 chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
   const { startExam } = await chrome.storage.sync.get()
-  if (!changeInfo.url || !startExam) return
+  if (!changeInfo.url || !startExam || tab.url.startsWith('chrome')) return
+
+  const { examId, examineeId, url, platform } = await chrome.storage.sync.get()
+
+  if (platform === 'MOODLE' && getFormId(platform, tab.url)) return
+
+  try {
+    if (platform === 'GOOGLE_FORMS' && getFormId(platform, tab.url)) return
+  } catch (error) {
+    // try catch is necessary kay nag array indexing ko para makuha ang form id sa google
+    // and possible ma array index out of bounds
+  }
 
   // search engine usage is tracked in `tabs.onUpdate` since the alternative, `history.onVisited`
   // does not track usage in incognito
-  const { examId, examineeId, url } = await chrome.storage.sync.get()
-
   const SEARCH_ENGINES = [
     {
       url: 'google.com/search',
@@ -107,7 +132,7 @@ chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
-  } else if (!tab.url.startsWith('chrome') && tab.url !== url) {
+  } else if (tab.url !== url) {
     fetch(endpoint, {
       body: JSON.stringify({
         name: 'ACCESSED_SITE',
@@ -237,3 +262,38 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     chrome.storage.sync.clear()
   }
 })
+
+const parseGoogleFormURL = (url) => {
+  // google form url pattern
+  // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link
+  const splitURL = url.split('/')
+
+  return {
+    id: splitURL[splitURL.length - 2],
+  }
+}
+
+const parseTeamsFormURL = (url) => {
+  // google form url pattern
+  // https://docs.google.com/forms/d/e/{form_id}/viewform?usp=sf_link
+  return {
+    id: new URL(url).searchParams.get('id'),
+  }
+}
+
+const parseMoodleFormURL = (url) => {
+  // moodle form url pattern
+  // https://lair.education/mod/quiz/attempt.php?attempt={attempt_id}&cmid={form_id}
+  return {
+    // only start tracking if `cmid` exists
+    // note that `id` being present does not mean that the examinee has already started
+    // taking the exam mao nang wa gi apil ang `id` sa parsing
+    id: new URL(url).searchParams.get('cmid'),
+  }
+}
+
+const getFormId = (platform, url) => {
+  if (platform === 'TEAMS') return parseTeamsFormURL(url).id
+  if (platform === 'GOOGLE_FORMS') return parseGoogleFormURL(url).id
+  return parseMoodleFormURL(url).id
+}

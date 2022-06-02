@@ -20,6 +20,7 @@
   ],
   "host_permissions": [
     "*://docs.google.com/forms/*",
-    "*://forms.office.com/Pages/*"
+    "*://forms.office.com/Pages/*",
+    "*://lair.education/*"
   ]
 }
